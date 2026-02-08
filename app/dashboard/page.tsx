@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export default function DashboardPage() {
   const { user, loading, signOut } = useAuth();
   const router = useRouter();
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<Record<string, string> | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
