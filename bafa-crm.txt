@@ -1,0 +1,36 @@
+
+Based on the documents, here's what I understand about the BAFA CRM MVP:
+
+Project Summary
+You're building a specialized CRM for managing BAFA-funded consulting projects (BAFA is a German federal funding program). This is a domain-specific compliance platform, not a generic CRM.
+
+Key Requirements:
+1. Three User Roles with Strict Permissions:
+
+Client - Can only upload/sign documents, view their own projects
+Consultant - Can report status, issue invoices, but cannot change official case statuses
+Funding Advisor - Only role that can change case statuses, approve documents, and submit to BAFA (single source of truth)
+2. Case Management:
+
+23 predefined case statuses following BAFA funding workflow
+Manual status changes (no automation in MVP)
+Status flow: Lead → Eligibility Review → Document Collection → BAFA Submission → Consultation → Invoicing → Reporting → Approval → Payout → Closed
+3. Document Management:
+
+13 document types from 3 sources (Client, Consultant, Funding Advisor)
+8 document states (Requested → Uploaded → Reviewed → Correction Required → Corrected → Approved → Submitted to BAFA → Archived)
+All documents follow same state workflow for compliance
+4. Features:
+
+Secure login with role-based access
+Project-based document upload/management
+Simple project communication between participants
+No automation, calendars, or advanced analytics in MVP
+My Implementation Plan:
+Database Design: Create tables for users, projects, case statuses, documents, document types/states, and communication
+Authentication: Set up Supabase email/password auth with role-based access
+Core UI: Build project dashboard, project detail views, document management, and communication interface
+Permissions: Implement strict role-based access controls per the specification
+Professional Design: Clean, audit-ready interface suitable for compliance work
+Should I proceed with building this system?
+
