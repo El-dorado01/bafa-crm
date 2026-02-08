@@ -34,3 +34,24 @@ Permissions: Implement strict role-based access controls per the specification
 Professional Design: Clean, audit-ready interface suitable for compliance work
 Should I proceed with building this system?
 
+
+
+
+Based on the typical workflow for a BAFA-funded consulting project, here is a recap of what a Client (SME) should be allowed to do in the CRM:
+
+1. Project Tracking
+View Project Status: See exactly where their funding application stands (e.g., "Consultant Assigned", "Drafting Report", "Submitted to BAFA", "Approved").
+View Timeline: See upcoming deadlines and milestones.
+2. Document Management (Critical for BAFA)
+Upload Required Documents: Clients must upload specific legal documents (e.g., Gewerbeanmeldung, Handelsregisterauszug, Steuerbescheide, De-minimis-Erklärung).
+View/Download Reports: Access the final consulting report and BAFA notices (Zuwendungsbescheid).
+3. Communication
+Chat with Consultant/Advisor: Direct line to their assigned expert.
+Approve Steps: Digitally sign or approve specific stages (e.g., approving the final consulting contract or reports).
+4. Company Profile
+Manage Business Details: Update address, legal form, founding date, and industry (all critical for BAFA eligibility).
+Clarification for "Clients Page"
+When you say "Clients Page", do you mean:
+
+The Client Management List: A page for Consultants/Advisors to see a table of all their clients?
+The Client Dashboard: The home page a Client sees when they log in?
