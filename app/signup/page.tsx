@@ -248,7 +248,7 @@ export default function SignupPage() {
       {/* Decorative Side - Desktop Only */}
       <div className='hidden lg:flex relative items-center justify-center bg-primary overflow-hidden border-l border-white/10'>
         <div className='absolute inset-0 z-0'>
-          <div className='absolute inset-0 bg-gradient-to-br from-primary via-primary/80 to-transparent' />
+          <div className='absolute inset-0 bg-linear-to-br from-primary via-primary/80 to-transparent' />
           <div
             className='absolute inset-0 opacity-20'
             style={{
