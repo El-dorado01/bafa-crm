@@ -17,12 +17,11 @@ export default async function ClientsPage() {
   }
 
   // Verify Role: Only Consultants (and maybe Admins) should see this page
-  // We can fetch the user's profile to check role
-  const currentUserProfile = await prisma.profile.findUnique({
-    where: { id: user.id },
+  const currentUser = await prisma.user.findUnique({
+    where: { email: user.email! },
   });
 
-  if (!currentUserProfile || currentUserProfile.role !== 'Consultant') {
+  if (!currentUser || currentUser.role !== 'CONSULTANT') {
     // If not a consultant, redirect to dashboard or show unauthorized
     // For now, let's redirect to dashboard
     // redirect('/dashboard');
@@ -30,28 +29,33 @@ export default async function ClientsPage() {
   }
 
   // Fetch Clients
-  // In a real app, we might filter by clients assigned to this consultant
-  // For now, fetch all users with role 'client' (or just all profiles for demo)
-  const clients = await prisma.profile.findMany({
+  // We want to fetch users who have the role 'CLIENT'.
+  // Since we display profile info (companyName, phone), we should include the profile relation.
+  const clients = await prisma.user.findMany({
     where: {
-      role: 'Client', // Case sensitive? Schema comment says 'client', seed says 'Consultant'
-      // If seed uses 'Consultant' (Capitalized), we should check casing.
-      // Let's fetch all for now and filter or just show them.
-      // Or matches: { role: { equals: 'client', mode: 'insensitive' } }
+      role: 'CLIENT',
+    },
+    include: {
+      profile: true,
     },
     orderBy: {
       createdAt: 'desc',
     },
   });
 
-  // Fallback: If no clients found (e.g. only Consultants exist), fetch all profiles to show SOMETHING
-  // This is helpful for testing.
-  const displayClients =
-    clients.length > 0
-      ? clients
-      : await prisma.profile.findMany({
-          orderBy: { createdAt: 'desc' },
-        });
+  // Transform data to match Client interface expected by the table
+  // The table expects: id, full_name, email, company_name, phone, role, createdAt
+  const displayClients = clients.map((client) => ({
+    id: client.id,
+    full_name: client.name || 'Unknown',
+    email: client.email,
+    company_name: client.profile?.companyName || null,
+    phone: null, // Phone is not in User or Profile based on schema? Let's check schema again if needed. Profile has address, legalForm, etc.
+    // Wait, looking at schema: Profile has companyName, address, legalForm, foundingDate, industry. No phone.
+    // User has email.
+    role: client.role,
+    createdAt: client.createdAt,
+  }));
 
   return (
     <div className='flex flex-col space-y-6'>
@@ -62,12 +66,7 @@ export default async function ClientsPage() {
         {/* Breadcrumb or secondary actions could go here */}
       </div>
 
-      <ClientTable
-        clients={displayClients.map((c) => ({
-          ...c,
-          createdAt: c.createdAt, // Pass Date object
-        }))}
-      />
+      <ClientTable clients={displayClients} />
     </div>
   );
 }

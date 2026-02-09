@@ -1,17 +1,11 @@
 import type { Metadata } from 'next';
-import { Habibi, Shadows_Into_Light } from 'next/font/google';
+import { Hanken_Grotesk } from 'next/font/google';
 import './globals.css';
 
-const habibi = Habibi({
-  weight: '400',
+const hankenGrotesk = Hanken_Grotesk({
   subsets: ['latin'],
-  variable: '--font-habibi',
-});
-
-const shadowsIntoLight = Shadows_Into_Light({
-  weight: '400',
-  subsets: ['latin'],
-  variable: '--font-shadows-into-light',
+  variable: '--font-hanken-grotesk',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -27,7 +21,7 @@ export default function RootLayout({
   return (
     <html
       lang='en'
-      className={shadowsIntoLight.variable}
+      className={hankenGrotesk.variable}
     >
       <body className='antialiased'>{children}</body>
     </html>
