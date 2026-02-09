@@ -1,178 +1,115 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  CLIENT
+  CONSULTANT
+  FUNDING_ADVISOR
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  role      UserRole @default(CLIENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  clientProjects     Project[]       @relation("ClientProjects")
+  consultantProjects Project[]       @relation("ConsultantProjects")
+  messages           Communication[]
+  uploadedDocuments  Document[]
+  profile            Profile?
 }
 
 model Profile {
-  id           String    @id @db.Uuid
-  email        String    @unique
-  full_name    String
-  role         String // 'client', 'consultant', 'funding_advisor'
-  company_name String?
-  phone        String?
-  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  // Relationships
-  projectsAsClient         Project[]             @relation("ClientProjects")
-  projectsAsConsultant     Project[]             @relation("ConsultantProjects")
-  projectsAsFundingAdvisor Project[]             @relation("AdvisorProjects")
-  participations           ProjectParticipant[]
-  uploadedDocuments        Document[]            @relation("UploadedDocs")
-  reviewedDocuments        Document[]            @relation("ReviewedDocs")
-  approvedDocuments        Document[]            @relation("ApprovedDocs")
-  sentCommunications       Communication[]
-
-  @@map("profiles")
-}
-
-model CaseStatus {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  status_order   Int      @unique
-  status_name    String   @unique
-  status_category String // 'active', 'revision', 'end'
-  description    String?
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  projects Project[]
-
-  @@map("case_statuses")
-}
-
-model DocumentType {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  type_name   String   @unique
-  source_role String // 'client', 'consultant', 'funding_advisor'
-  description String?
-  is_required Boolean? @default(true)
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  documents Document[]
-
-  @@map("document_types")
-}
-
-model DocumentState {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  state_order Int      @unique
-  state_name  String   @unique
-  description String?
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  documents Document[]
-
-  @@map("document_states")
+  id           String @id @default(uuid())
+  userId       String @unique
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName  String?
+  address      String?
+  legalForm    String?
+  foundingDate DateTime?
+  industry     String?
 }
 
 model Project {
-  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  project_number        String    @unique
-  client_id             String?   @db.Uuid
-  consultant_id         String?   @db.Uuid
-  funding_advisor_id    String?   @db.Uuid
-  current_status_id     String?   @db.Uuid
-  
-  project_name          String
-  company_name          String
-  consultation_days     Int?
-  consultation_start_date DateTime? @db.Date
-  consultation_end_date   DateTime? @db.Date
-  
-  total_cost_euros      Decimal?  @db.Decimal(10, 2)
-  funding_amount_euros  Decimal?  @db.Decimal(10, 2)
-  
-  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt             DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  archived              Boolean?  @default(false)
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  // Relationships
-  client         Profile?    @relation("ClientProjects", fields: [client_id], references: [id])
-  consultant     Profile?    @relation("ConsultantProjects", fields: [consultant_id], references: [id])
-  fundingAdvisor Profile?    @relation("AdvisorProjects", fields: [funding_advisor_id], references: [id])
-  currentStatus  CaseStatus? @relation(fields: [current_status_id], references: [id])
-  
-  participants   ProjectParticipant[]
+  clientId     String
+  client       User   @relation("ClientProjects", fields: [clientId], references: [id])
+  consultantId String?
+  consultant   User?  @relation("ConsultantProjects", fields: [consultantId], references: [id])
+
+  caseStatusId String
+  caseStatus   CaseStatus @relation(fields: [caseStatusId], references: [id])
+
   documents      Document[]
   communications Communication[]
-
-  @@map("projects")
 }
 
-model ProjectParticipant {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  project_id String   @db.Uuid
-  user_id    String   @db.Uuid
-  role       String // 'client', 'consultant', 'funding_advisor'
-  added_at   DateTime @default(now()) @db.Timestamptz(6)
+model CaseStatus {
+  id          String    @id @default(uuid())
+  name        String    @unique // e.g., "Lead", "Eligibility Review", etc.
+  description String?
+  order       Int       @unique // To maintain the flow order
+  projects    Project[]
+}
 
-  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
-  user    Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+model DocumentType {
+  id          String     @id @default(uuid())
+  name        String     @unique // e.g., "Gewerbeanmeldung", "Bericht"
+  description String?
+  documents   Document[]
+}
 
-  @@unique([project_id, user_id])
-  @@map("project_participants")
+model DocumentState {
+  id          String     @id @default(uuid())
+  name        String     @unique // e.g., "Requested", "Uploaded", "Approved"
+  description String?
+  documents   Document[]
 }
 
 model Document {
-  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  project_id       String   @db.Uuid
-  document_type_id String   @db.Uuid
-  current_state_id String   @db.Uuid
-  
-  file_name        String
-  file_path        String
-  file_size_bytes  BigInt?
-  mime_type        String?
-  
-  version_number   Int?     @default(1)
-  is_latest_version Boolean? @default(true)
-  replaced_by_id   String?  @db.Uuid
-  
-  uploaded_by_id   String?  @map("uploaded_by") @db.Uuid
-  reviewed_by_id   String?  @map("reviewed_by") @db.Uuid
-  approved_by_id   String?  @map("approved_by") @db.Uuid
-  
-  notes            String?
-  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id        String   @id @default(uuid())
+  filePath  String
+  fileName  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  // Relationships
-  project      Project       @relation(fields: [project_id], references: [id], onDelete: Cascade)
-  documentType DocumentType  @relation(fields: [document_type_id], references: [id])
-  currentState DocumentState @relation(fields: [current_state_id], references: [id])
-  
-  uploadedBy   Profile?      @relation("UploadedDocs", fields: [uploaded_by_id], references: [id])
-  reviewedBy   Profile?      @relation("ReviewedDocs", fields: [reviewed_by_id], references: [id])
-  approvedBy   Profile?      @relation("ApprovedDocs", fields: [approved_by_id], references: [id])
-  
-  replacedBy   Document?     @relation("VersionHistory", fields: [replaced_by_id], references: [id])
-  replacedDocs Document[]    @relation("VersionHistory")
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  @@map("documents")
+  typeId String
+  type   DocumentType @relation(fields: [typeId], references: [id])
+
+  stateId String
+  state   DocumentState @relation(fields: [stateId], references: [id])
+
+  uploadedById String
+  uploadedBy   User   @relation(fields: [uploadedById], references: [id])
 }
 
 model Communication {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  project_id       String    @db.Uuid
-  sender_id        String?   @db.Uuid
-  
-  subject          String?
-  message          String
-  is_internal_note Boolean?  @default(false)
-  
-  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  read_at          DateTime? @db.Timestamptz(6)
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
 
-  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
-  sender  Profile? @relation(fields: [sender_id], references: [id])
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  @@map("communications")
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id])
 }
