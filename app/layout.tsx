@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
-import { Hanken_Grotesk } from 'next/font/google';
+import { Quicksand } from 'next/font/google';
 import './globals.css';
 
-const hankenGrotesk = Hanken_Grotesk({
+const quicksand = Quicksand({
   subsets: ['latin'],
-  variable: '--font-hanken-grotesk',
+  variable: '--font-quicksand',
   display: 'swap',
 });
 
@@ -21,7 +21,7 @@ export default function RootLayout({
   return (
     <html
       lang='en'
-      className={hankenGrotesk.variable}
+      className={quicksand.variable}
     >
       <body className='antialiased'>{children}</body>
     </html>
