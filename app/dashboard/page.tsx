@@ -11,12 +11,51 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/server';
+import prisma from '@/lib/prisma';
+import { Badge } from '@/components/ui/badge';
 
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const userData = user
+    ? await prisma.user.findUnique({
+        where: { id: user.id },
+      })
+    : null;
+
   return (
     <div className='space-y-10'>
+      <div className='space-y-0.5'>
+        <h2 className='text-3xl font-black tracking-tight font-sans text-foreground'>
+          Welcome back,{' '}
+          <span className='text-primary italic font-black underline decoration-primary/20 underline-offset-8'>
+            {userData?.name?.split(' ')[0] || 'User'}
+          </span>
+        </h2>
+        <div className='flex items-center gap-3 text-muted-foreground font-semibold text-sm'>
+          <span>
+            {new Date().toLocaleDateString('en-US', {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            })}
+          </span>
+          <span className='h-1 w-1 rounded-full bg-muted-foreground/30' />
+          <Badge
+            variant='outline'
+            className='h-5 py-0 px-2 rounded-md font-black uppercase text-[10px] tracking-widest bg-muted border-primary/20 text-primary'
+          >
+            {userData?.role || 'Member'}
+          </Badge>
+        </div>
+      </div>
+
       {/* Bento Stats */}
       <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-4'>
         {[

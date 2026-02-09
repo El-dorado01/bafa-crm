@@ -5,10 +5,11 @@ import {
   Search,
   Filter,
   MoreHorizontal,
-  ArrowUpDown,
   Eye,
   Mail,
-  Phone,
+  Briefcase,
+  History,
+  User as UserIcon,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -37,17 +38,16 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
-// Type definition (can be moved to types file later)
 export interface Client {
   id: string;
-  full_name: string;
+  name: string;
   email: string;
-  company_name: string | null;
-  phone: string | null;
-  role: string;
+  companyName: string | null;
+  projectCount: number;
   createdAt: Date;
-  // Add more fields as needed (e.g., status, last_active)
+  updatedAt: Date;
 }
 
 interface ClientTableProps {
@@ -56,176 +56,172 @@ interface ClientTableProps {
 
 export function ClientTable({ clients: initialClients }: ClientTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Filter and Sort Logic
-  const filteredClients = initialClients
-    .filter(
-      (client) =>
-        client.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (client.company_name &&
-          client.company_name.toLowerCase().includes(searchTerm.toLowerCase())),
-    )
-    .sort((a, b) => {
-      const dateA = new Date(a.createdAt).getTime();
-      const dateB = new Date(b.createdAt).getTime();
-      return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
-    });
-
-  const toggleSort = () => {
-    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-  };
+  const filteredClients = initialClients.filter(
+    (client) =>
+      client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (client.companyName &&
+        client.companyName.toLowerCase().includes(searchTerm.toLowerCase())),
+  );
 
   return (
-    <Card className='glass-card w-full border-none shadow-lg'>
-      <CardHeader>
-        <div className='flex items-center justify-between'>
+    <Card className='glass-card w-full border-none shadow-sm overflow-hidden'>
+      <CardHeader className='pb-0'>
+        <div className='flex flex-col md:flex-row md:items-center justify-between gap-4'>
           <div>
-            <CardTitle className='text-2xl font-bold text-gray-800'>
-              Clients
+            <CardTitle className='text-2xl font-black tracking-tight text-foreground'>
+              Active Clients
             </CardTitle>
-            <CardDescription className='text-gray-500'>
-              Manage your client base and view their profiles.
+            <CardDescription className='font-medium text-muted-foreground'>
+              Monitor and manage your client base.
             </CardDescription>
           </div>
-          <div className='flex items-center space-x-2'>
-            <div className='relative'>
-              <Search className='absolute left-2.5 top-2.5 h-4 w-4 text-gray-500' />
+          <div className='flex items-center gap-3'>
+            <div className='relative group'>
+              <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors' />
               <Input
                 type='search'
-                placeholder='Search clients...'
-                className='pl-9 w-[250px] bg-white/50 border-gray-200 focus:ring-primary/20'
+                placeholder='Search by name or company...'
+                className='pl-10 w-full md:w-[300px] bg-muted/50 border-border/40 focus:bg-white transition-all rounded-xl font-medium'
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <Button
               variant='outline'
-              className='bg-white/50 border-gray-200'
+              className='rounded-xl border-border/40 font-bold gap-2'
             >
-              <Filter className='mr-2 h-4 w-4' />
+              <Filter className='h-4 w-4' />
               Filter
-            </Button>
-            <Button className='bg-primary hover:bg-primary/90 text-white shadow-md transition-all hover:scale-105'>
-              Add Client
             </Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className='rounded-md border border-gray-100 overflow-hidden'>
+      <CardContent className='pt-6'>
+        <div className='rounded-2xl border border-border/40 overflow-hidden bg-white/50 backdrop-blur-sm shadow-inner'>
           <Table>
-            <TableHeader className='bg-gray-50/50'>
-              <TableRow>
-                <TableHead className='w-[300px]'>Client</TableHead>
-                <TableHead>Company</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead
-                  className='text-right cursor-pointer hover:text-primary transition-colors'
-                  onClick={toggleSort}
-                >
-                  Joined <ArrowUpDown className='ml-1 h-3 w-3 inline' />
+            <TableHeader className='bg-muted/50'>
+              <TableRow className='hover:bg-transparent border-border/40'>
+                <TableHead className='font-black uppercase tracking-widest text-[11px] py-5 pl-6'>
+                  Client Info
                 </TableHead>
-                <TableHead className='text-right'>Actions</TableHead>
+                <TableHead className='font-black uppercase tracking-widest text-[11px] py-5'>
+                  Company
+                </TableHead>
+                <TableHead className='font-black uppercase tracking-widest text-[11px] py-5'>
+                  Active Projects
+                </TableHead>
+                <TableHead className='font-black uppercase tracking-widest text-[11px] py-5'>
+                  Last Activity
+                </TableHead>
+                <TableHead className='font-black uppercase tracking-widest text-[11px] py-5 text-right pr-6'>
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredClients.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
-                    className='h-24 text-center text-gray-500'
+                    colSpan={5}
+                    className='h-32 text-center text-muted-foreground font-bold'
                   >
-                    No clients found.
+                    No clients discovered in the database.
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredClients.map((client) => (
                   <TableRow
                     key={client.id}
-                    className='hover:bg-gray-50/30 transition-colors group'
+                    className='hover:bg-primary/5 transition-all duration-300 border-border/20 group'
                   >
-                    <TableCell className='font-medium'>
-                      <div className='flex items-center space-x-3'>
-                        <Avatar className='h-9 w-9 ring-2 ring-white shadow-sm'>
+                    <TableCell className='py-4 pl-6'>
+                      <div className='flex items-center gap-4'>
+                        <Avatar className='h-10 w-10 border-2 border-white shadow-sm transition-transform group-hover:scale-110 duration-500'>
                           <AvatarImage
-                            src={`https://avatar.vercel.sh/${client.email}`}
-                            alt={client.full_name}
+                            src={`https://api.dicebear.com/7.x/initials/svg?seed=${client.name}`}
+                            alt={client.name}
                           />
-                          <AvatarFallback className='bg-primary/10 text-primary'>
-                            {client.full_name.slice(0, 2).toUpperCase()}
+                          <AvatarFallback className='bg-primary/10 text-primary font-black uppercase text-xs'>
+                            {client.name.slice(0, 2)}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className='font-semibold text-gray-900'>
-                            {client.full_name}
+                          <p className='font-black text-foreground leading-none mb-1 group-hover:text-primary transition-colors'>
+                            {client.name}
                           </p>
-                          <p className='text-xs text-gray-500'>
+                          <p className='text-xs font-bold text-muted-foreground tracking-tight'>
                             {client.email}
                           </p>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      {client.company_name ? (
-                        <div className='flex items-center text-sm text-gray-700'>
-                          {client.company_name}
+                    <TableCell className='py-4'>
+                      {client.companyName ? (
+                        <div className='flex items-center gap-2 font-bold text-foreground text-sm'>
+                          <div className='h-2 w-2 rounded-full bg-primary/30' />
+                          {client.companyName}
                         </div>
                       ) : (
-                        <span className='text-gray-400 italic text-sm'>--</span>
+                        <span className='text-muted-foreground/40 italic font-medium text-xs'>
+                          Not specified
+                        </span>
                       )}
                     </TableCell>
-                    <TableCell>
-                      <div className='flex flex-col space-y-1'>
-                        {client.phone && (
-                          <div className='flex items-center text-xs text-gray-500'>
-                            <Phone className='h-3 w-3 mr-1' /> {client.phone}
-                          </div>
-                        )}
-                        <div className='flex items-center text-xs text-gray-500'>
-                          <Mail className='h-3 w-3 mr-1' /> Email
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
+                    <TableCell className='py-4'>
                       <Badge
                         variant='secondary'
-                        className='bg-green-100 text-green-700 hover:bg-green-200 border-green-200'
+                        className='bg-primary/10 text-primary hover:bg-primary/20 border-none px-3 py-1 font-black rounded-lg transition-all gap-2'
                       >
-                        Active
+                        <Briefcase className='h-3 w-3' />
+                        {client.projectCount} Projects
                       </Badge>
                     </TableCell>
-                    <TableCell className='text-right text-gray-500'>
-                      {new Date(client.createdAt).toLocaleDateString()}
+                    <TableCell className='py-4 text-sm font-bold text-muted-foreground'>
+                      <div className='flex items-center gap-2'>
+                        <History className='h-3.5 w-3.5 opacity-50' />
+                        {new Date(client.updatedAt).toLocaleDateString(
+                          'en-US',
+                          {
+                            month: 'short',
+                            day: 'numeric',
+                          },
+                        )}
+                      </div>
                     </TableCell>
-                    <TableCell className='text-right'>
+                    <TableCell className='py-4 text-right pr-6'>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant='ghost'
                             size='icon'
-                            className='h-8 w-8 text-gray-400 hover:text-gray-700'
+                            className='h-9 w-9 rounded-xl hover:bg-white hover:shadow-sm transition-all text-muted-foreground hover:text-primary'
                           >
                             <MoreHorizontal className='h-4 w-4' />
-                            <span className='sr-only'>Open menu</span>
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align='end'
-                          className='w-[160px]'
+                          className='w-56 p-2 rounded-lg border-border/40 shadow-lg backdrop-blur-xl bg-white/90'
                         >
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem className='cursor-pointer'>
-                            <Eye className='mr-2 h-4 w-4' /> View Details
+                          <DropdownMenuLabel className='px-3 py-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60'>
+                            Client Actions
+                          </DropdownMenuLabel>
+                          <DropdownMenuItem className='cursor-pointer rounded-lg p-3 focus:bg-primary/10 focus:text-primary group'>
+                            <Eye className='mr-3 h-4 w-4 transition-transform group-hover:scale-110' />
+                            <span className='font-bold'>View Dashboard</span>
                           </DropdownMenuItem>
-                          <DropdownMenuItem className='cursor-pointer'>
-                            <Mail className='mr-2 h-4 w-4' /> Send Email
+                          <DropdownMenuItem className='cursor-pointer rounded-lg p-3 focus:bg-primary/10 focus:text-primary group'>
+                            <Mail className='mr-3 h-4 w-4 transition-transform group-hover:scale-110' />
+                            <span className='font-bold'>Contact Client</span>
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className='text-red-600 focus:text-red-600 cursor-pointer'>
-                            Delete Client
+                          <DropdownMenuSeparator className='bg-border/70 my-2' />
+                          <DropdownMenuItem 
+                          variant='destructive'
+                          className='cursor-pointer rounded-lg p-3 group'>
+                            <UserIcon className='mr-3 h-4 w-4 transition-transform group-hover:scale-110' />
+                            <span className='font-bold'>Review Profile</span>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

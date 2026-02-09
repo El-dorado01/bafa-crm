@@ -8,9 +8,11 @@ const quicksand = Quicksand({
   display: 'swap',
 });
 
+import { Toaster } from 'sonner';
+
 export const metadata: Metadata = {
-  title: 'BAFA CRM - Project Management Platform',
-  description: 'BAFA-funded consulting project management system',
+  title: 'BAFA CRM - Funding Advisor Management',
+  description: 'Streamlined client and project management for BAFA funding.',
 };
 
 export default function RootLayout({
@@ -21,9 +23,18 @@ export default function RootLayout({
   return (
     <html
       lang='en'
-      className={quicksand.variable}
+      suppressHydrationWarning
     >
-      <body className='antialiased'>{children}</body>
+      <body
+        className={`${quicksand.variable} font-sans antialiased bg-background text-foreground`}
+      >
+        <Toaster
+          position='top-right'
+          richColors
+          expand
+        />
+        {children}
+      </body>
     </html>
   );
 }

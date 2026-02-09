@@ -1,7 +1,8 @@
-import { Badge } from '@/components/ui/badge';
 import { Search, Bell } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import prisma from '@/lib/prisma';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { DynamicBreadcrumbs } from './dynamic-breadcrumbs';
 
 export async function DashboardHeader() {
   const supabase = await createClient();
@@ -16,44 +17,25 @@ export async function DashboardHeader() {
     : null;
 
   return (
-    <header className='sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border/40 px-8 py-5'>
-      <div className='max-w-7xl mx-auto flex justify-between items-center'>
-        <div className='space-y-0.5'>
-          <h2 className='text-2xl font-black tracking-tight font-sans text-foreground'>
-            Welcome back,{' '}
-            <span className='text-primary italic font-black'>
-              {userData?.name?.split(' ')[0] || 'User'}
-            </span>
-          </h2>
-          <div className='flex items-center gap-3 text-muted-foreground font-semibold text-sm'>
-            <span>
-              {new Date().toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </span>
-            <span className='h-1 w-1 rounded-full bg-muted-foreground/30' />
-            <Badge
-              variant='outline'
-              className='h-5 py-0 px-2 rounded-md font-black uppercase text-[10px] tracking-widest bg-muted border-primary/20 text-primary'
-            >
-              {userData?.role || 'Member'}
-            </Badge>
-          </div>
+    <header className='sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-border/40 px-4 md:px-8 py-4 md:py-5'>
+      <div className='flex justify-between items-center max-w-7xl mx-auto gap-4'>
+        <div className='flex items-center gap-2 md:gap-4'>
+          <SidebarTrigger className='-ml-1' />
+          <div className='h-4 w-px bg-border/60 mx-1 hidden sm:block' />
+          <DynamicBreadcrumbs />
         </div>
 
-        <div className='flex items-center gap-4'>
-          <button className='h-11 w-11 rounded-full bg-muted/30 border border-border/40 flex items-center justify-center hover:bg-muted transition-colors relative'>
-            <Search className='h-5 w-5 text-muted-foreground' />
+        <div className='flex items-center gap-2 md:gap-4'>
+          <button className='h-9 w-9 md:h-11 md:w-11 rounded-full bg-muted/30 border border-border/40 flex items-center justify-center hover:bg-muted transition-colors relative'>
+            <Search className='h-4 w-4 md:h-5 md:w-5 text-muted-foreground' />
           </button>
-          <button className='h-11 w-11 rounded-full bg-muted/30 border border-border/40 flex items-center justify-center hover:bg-muted transition-colors relative'>
-            <Bell className='h-5 w-5 text-muted-foreground' />
-            <span className='absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-primary border-2 border-background' />
+          <button className='h-9 w-9 md:h-11 md:w-11 rounded-full bg-muted/30 border border-border/40 flex items-center justify-center hover:bg-muted transition-colors relative'>
+            <Bell className='h-4 w-4 md:h-5 md:w-5 text-muted-foreground' />
+            <span className='absolute top-2 right-2 md:top-2.5 md:right-2.5 h-1.5 w-1.5 md:h-2 md:w-2 rounded-full bg-primary border-2 border-background' />
           </button>
-          <div className='h-11 w-11 rounded-2xl bg-linear-to-br from-primary to-blue-600 p-[2px] shadow-lg shadow-primary/20'>
-            <div className='h-full w-full rounded-[14px] bg-background flex items-center justify-center overflow-hidden'>
-              <div className='h-full w-full bg-primary/10 flex items-center justify-center text-primary font-black'>
+          <div className='h-9 w-9 md:h-11 md:w-11 rounded-xl md:rounded-2xl bg-linear-to-br from-primary to-blue-600 p-[2px] shadow-lg shadow-primary/20'>
+            <div className='h-full w-full rounded-[7px] md:rounded-[14px] bg-background flex items-center justify-center overflow-hidden'>
+              <div className='h-full w-full bg-primary/10 flex items-center justify-center text-primary font-black text-xs md:text-base'>
                 {userData?.name?.charAt(0) || 'U'}
               </div>
             </div>

@@ -13,6 +13,19 @@ import { usePathname } from 'next/navigation';
 import { logout } from '@/app/login/actions';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarGroup,
+  SidebarGroupContent,
+  useSidebar,
+} from '@/components/ui/sidebar';
+import { Button } from '../ui/button';
 
 const sidebarLinks = [
   { icon: LayoutDashboard, label: 'Overview', href: '/dashboard' },
@@ -28,48 +41,62 @@ const sidebarLinks = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { setOpenMobile, isMobile } = useSidebar();
 
   return (
-    <aside className='w-72 border-r border-border/40 bg-card hidden md:flex flex-col z-20 h-screen sticky top-0'>
-      <div className='p-8 pb-4'>
-        <div className='flex items-center gap-3 mb-10 overflow-hidden'>
-          <div className='h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30 shrink-0'>
+    <Sidebar variant='inset'>
+      <SidebarHeader className='px-8 pb-4 pt-8 md:py-4'>
+        <div className='flex items-center gap-3 overflow-hidden mb-10 md:mb-0'>
+          <div className='h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-sm shadow-primary/20 shrink-0'>
             <CheckCircle2 className='h-6 w-6 text-white' />
           </div>
-          <h1 className='text-xl font-black tracking-tighter uppercase italic text-gradient'>
+          <h1 className='text-xl font-black tracking-tighter uppercase text-gradient'>
             BAFA CRM
           </h1>
         </div>
+      </SidebarHeader>
 
-        <nav className='space-y-1.5 font-medium'>
-          {sidebarLinks.map((link) => {
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group',
-                  isActive
-                    ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                )}
-              >
-                <link.icon
-                  className={cn(
-                    'h-5 w-5 transition-transform group-hover:scale-110',
-                    isActive ? 'text-white' : 'text-primary',
-                  )}
-                />
-                {link.label}
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
+      <SidebarContent>
+        <SidebarGroup className='px-4 md:px-0'>
+          <SidebarGroupContent>
+            <SidebarMenu className='space-y-1.5'>
+              {sidebarLinks.map((link) => {
+                const isActive = pathname === link.href;
+                return (
+                  <SidebarMenuItem key={link.href}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive}
+                      onClick={() => isMobile && setOpenMobile(false)}
+                      className={cn(
+                        'w-full flex items-center gap-3 px-4 py-6 rounded-xl transition-all duration-300 group',
+                        isActive
+                          ? 'bg-primary text-white shadow-sm shadow-primary/20 hover:bg-primary/90 hover:text-white'
+                          : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                      )}
+                    >
+                      <Link href={link.href}>
+                        <link.icon
+                          className={cn(
+                            'h-5 w-5 transition-transform group-hover:scale-110',
+                            isActive ? 'text-white' : 'text-primary',
+                          )}
+                        />
+                        <span className='font-medium text-base'>
+                          {link.label}
+                        </span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
 
-      <div className='mt-auto p-6 space-y-4'>
-        <div className='p-4 rounded-2xl bg-linear-to-br from-primary/10 to-blue-500/5 border border-primary/10'>
+      <SidebarFooter className='py-6 px-4 md:px-2 mt-auto space-y-4'>
+        {/* <div className='p-4 rounded-2xl bg-linear-to-br from-primary/10 to-blue-500/5 border border-primary/10'>
           <p className='text-xs font-black uppercase tracking-widest text-primary mb-2'>
             Platform Status
           </p>
@@ -77,16 +104,18 @@ export function AppSidebar() {
             <div className='h-2 w-2 rounded-full bg-green-500 animate-pulse' />
             <p className='text-sm font-bold'>Systems Operational</p>
           </div>
-        </div>
+        </div> */}
 
-        <button
+        <Button
+          variant={'destructive'}
+          size={'lg'}
           onClick={() => logout()}
-          className='w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-colors font-bold group'
+          className='w-full py-6 font-bold group cursor-pointer'
         >
           <LogOut className='h-5 w-5 group-hover:-translate-x-1 transition-transform' />
           Sign Out
-        </button>
-      </div>
-    </aside>
+        </Button>
+      </SidebarFooter>
+    </Sidebar>
   );
 }

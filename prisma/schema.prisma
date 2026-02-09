@@ -8,108 +8,97 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-enum UserRole {
-  CLIENT
-  CONSULTANT
-  FUNDING_ADVISOR
-}
-
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  role      UserRole @default(CLIENT)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  clientProjects     Project[]       @relation("ClientProjects")
-  consultantProjects Project[]       @relation("ConsultantProjects")
+  id                 String          @id @default(uuid())
+  email              String          @unique
+  name               String?
+  role               UserRole        @default(CLIENT)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
   messages           Communication[]
   uploadedDocuments  Document[]
   profile            Profile?
+  clientProjects     Project[]       @relation("ClientProjects")
+  consultantProjects Project[]       @relation("ConsultantProjects")
 }
 
 model Profile {
-  id           String @id @default(uuid())
-  userId       String @unique
-  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String    @id @default(uuid())
+  userId       String    @unique
   companyName  String?
   address      String?
   legalForm    String?
   foundingDate DateTime?
   industry     String?
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Project {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  clientId     String
-  client       User   @relation("ClientProjects", fields: [clientId], references: [id])
-  consultantId String?
-  consultant   User?  @relation("ConsultantProjects", fields: [consultantId], references: [id])
-
-  caseStatusId String
-  caseStatus   CaseStatus @relation(fields: [caseStatusId], references: [id])
-
-  documents      Document[]
+  id             String          @id @default(uuid())
+  name           String
+  description    String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  clientId       String
+  consultantId   String?
+  caseStatusId   String
   communications Communication[]
+  documents      Document[]
+  caseStatus     CaseStatus      @relation(fields: [caseStatusId], references: [id])
+  client         User            @relation("ClientProjects", fields: [clientId], references: [id])
+  consultant     User?           @relation("ConsultantProjects", fields: [consultantId], references: [id])
 }
 
 model CaseStatus {
   id          String    @id @default(uuid())
-  name        String    @unique // e.g., "Lead", "Eligibility Review", etc.
+  name        String    @unique
   description String?
-  order       Int       @unique // To maintain the flow order
+  order       Int       @unique
   projects    Project[]
 }
 
 model DocumentType {
   id          String     @id @default(uuid())
-  name        String     @unique // e.g., "Gewerbeanmeldung", "Bericht"
+  name        String     @unique
   description String?
   documents   Document[]
 }
 
 model DocumentState {
   id          String     @id @default(uuid())
-  name        String     @unique // e.g., "Requested", "Uploaded", "Approved"
+  name        String     @unique
   description String?
   documents   Document[]
 }
 
 model Document {
-  id        String   @id @default(uuid())
-  filePath  String
-  fileName  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  typeId String
-  type   DocumentType @relation(fields: [typeId], references: [id])
-
-  stateId String
-  state   DocumentState @relation(fields: [stateId], references: [id])
-
+  id           String        @id @default(uuid())
+  filePath     String
+  fileName     String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  projectId    String
+  typeId       String
+  stateId      String
   uploadedById String
-  uploadedBy   User   @relation(fields: [uploadedById], references: [id])
+  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  state        DocumentState @relation(fields: [stateId], references: [id])
+  type         DocumentType  @relation(fields: [typeId], references: [id])
+  uploadedBy   User          @relation(fields: [uploadedById], references: [id])
 }
 
 model Communication {
   id        String   @id @default(uuid())
   content   String
   createdAt DateTime @default(now())
-
   projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  senderId  String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sender    User     @relation(fields: [senderId], references: [id])
+}
 
-  senderId String
-  sender   User   @relation(fields: [senderId], references: [id])
+enum UserRole {
+  CLIENT
+  CONSULTANT
+  FUNDING_ADVISOR
 }

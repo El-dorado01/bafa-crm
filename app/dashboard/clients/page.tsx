@@ -1,8 +1,7 @@
-import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import prisma from '@/lib/prisma';
-import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import { ClientTable } from '@/components/clients/client-table';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,57 +15,48 @@ export default async function ClientsPage() {
     redirect('/login');
   }
 
-  // Verify Role: Only Consultants (and maybe Admins) should see this page
-  const currentUser = await prisma.user.findUnique({
-    where: { email: user.email! },
-  });
-
-  if (!currentUser || currentUser.role !== 'CONSULTANT') {
-    // If not a consultant, redirect to dashboard or show unauthorized
-    // For now, let's redirect to dashboard
-    // redirect('/dashboard');
-    // Commented out for now to allow easier testing if role isn't perfectly set
-  }
-
-  // Fetch Clients
-  // We want to fetch users who have the role 'CLIENT'.
-  // Since we display profile info (companyName, phone), we should include the profile relation.
+  // Fetch all clients with their profiles and project counts
   const clients = await prisma.user.findMany({
     where: {
       role: 'CLIENT',
     },
     include: {
       profile: true,
+      _count: {
+        select: { clientProjects: true },
+      },
     },
     orderBy: {
       createdAt: 'desc',
     },
   });
 
-  // Transform data to match Client interface expected by the table
-  // The table expects: id, full_name, email, company_name, phone, role, createdAt
-  const displayClients = clients.map((client) => ({
+  // Transform data to match the expected Client interface in the component
+  const transformedClients: any[] = clients.map((client) => ({
     id: client.id,
-    full_name: client.name || 'Unknown',
+    name: client.name || 'Unknown',
     email: client.email,
-    company_name: client.profile?.companyName || null,
-    phone: null, // Phone is not in User or Profile based on schema? Let's check schema again if needed. Profile has address, legalForm, etc.
-    // Wait, looking at schema: Profile has companyName, address, legalForm, foundingDate, industry. No phone.
-    // User has email.
-    role: client.role,
+    companyName: client.profile?.companyName || null,
+    projectCount: client._count.clientProjects,
     createdAt: client.createdAt,
+    updatedAt: client.updatedAt,
   }));
 
   return (
-    <div className='flex flex-col space-y-6'>
-      <div className='flex items-center justify-between space-y-2'>
-        <h2 className='text-3xl font-bold tracking-tight text-gray-900'>
-          Client Management
-        </h2>
-        {/* Breadcrumb or secondary actions could go here */}
+    <div className='flex-1 space-y-8 animate-in fade-in duration-700'>
+      <div className='flex items-center justify-between'>
+        <div className='space-y-1'>
+          <h1 className='text-4xl font-black tracking-tight text-foreground'>
+            Client <span className='text-primary italic'>Directory</span>
+          </h1>
+          <p className='text-muted-foreground font-semibold flex items-center gap-2'>
+            <span className='h-1.5 w-1.5 rounded-full bg-primary' />
+            {transformedClients.length} Clients identified in the system
+          </p>
+        </div>
       </div>
 
-      <ClientTable clients={displayClients} />
+      <ClientTable clients={transformedClients as any} />
     </div>
   );
 }
