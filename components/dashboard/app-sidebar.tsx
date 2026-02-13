@@ -8,6 +8,7 @@ import {
   LogOut,
   CheckCircle2,
   Briefcase,
+  Building,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { logout } from '@/app/login/actions';
@@ -33,15 +34,33 @@ const sidebarLinks = [
   { icon: Users, label: 'Clients', href: '/dashboard/clients' },
   { icon: Files, label: 'Documents', href: '/dashboard/documents' },
   {
+    icon: Building,
+    label: 'Company Profile',
+    href: '/dashboard/profile',
+  },
+  {
     icon: MessageSquare,
     label: 'Communication',
     href: '/dashboard/communication',
   },
 ];
 
-export function AppSidebar() {
+export function AppSidebar({ role }: { role: string }) {
   const pathname = usePathname();
   const { setOpenMobile, isMobile } = useSidebar();
+
+  const isClient = role === 'CLIENT';
+
+  const filteredLinks = sidebarLinks.filter((link) => {
+    if (isClient) {
+      // Clients don't see the full CRM "Clients" list
+      return link.label !== 'Clients';
+    } else {
+      // Advisors/Consultants don't see the personal "Company Profile" link usually
+      // unless we want them to see it too, but plan says "for clients"
+      return link.label !== 'Company Profile';
+    }
+  });
 
   return (
     <Sidebar variant='inset'>
@@ -60,7 +79,7 @@ export function AppSidebar() {
         <SidebarGroup className='px-4 md:px-0'>
           <SidebarGroupContent>
             <SidebarMenu className='space-y-1.5'>
-              {sidebarLinks.map((link) => {
+              {filteredLinks.map((link) => {
                 const isActive = pathname === link.href;
                 return (
                   <SidebarMenuItem key={link.href}>

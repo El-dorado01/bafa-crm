@@ -85,6 +85,8 @@ model Document {
   state        DocumentState @relation(fields: [stateId], references: [id])
   type         DocumentType  @relation(fields: [typeId], references: [id])
   uploadedBy   User          @relation(fields: [uploadedById], references: [id])
+
+  @@unique([projectId, typeId])
 }
 
 model Communication {

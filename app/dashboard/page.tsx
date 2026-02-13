@@ -14,6 +14,8 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import prisma from '@/lib/prisma';
 import { Badge } from '@/components/ui/badge';
+import { redirect } from 'next/navigation';
+import { CreateProjectModal } from '@/components/projects/create-project-modal';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,15 +25,47 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const userData = user
-    ? await prisma.user.findUnique({
-        where: { id: user.id },
-      })
-    : null;
+  if (!user) {
+    redirect('/login');
+  }
+
+  let userData = await prisma.user.findUnique({
+    where: { id: user.id },
+  });
+
+  if (!userData && user.email) {
+    userData = await prisma.user.findUnique({
+      where: { email: user.email },
+    });
+  }
+
+  const isFundingAdvisor = userData?.role === 'FUNDING_ADVISOR';
+
+  // Fetch data for modal if user is advisor
+  let clients: any[] = [];
+  let consultants: any[] = [];
+  let statuses: any[] = [];
+
+  if (isFundingAdvisor) {
+    [clients, consultants, statuses] = await Promise.all([
+      prisma.user.findMany({
+        where: { role: 'CLIENT' },
+        select: { id: true, name: true, email: true },
+      }),
+      prisma.user.findMany({
+        where: { role: 'CONSULTANT' },
+        select: { id: true, name: true, email: true },
+      }),
+      prisma.caseStatus.findMany({
+        orderBy: { order: 'asc' },
+        select: { id: true, name: true },
+      }),
+    ]);
+  }
 
   return (
     <div className='space-y-10'>
-      <div className='space-y-0.5'>
+      <div className='space-y-2'>
         <h2 className='text-3xl font-black tracking-tight font-sans text-foreground'>
           Welcome back,{' '}
           <span className='text-primary italic font-black underline decoration-primary/20 underline-offset-8'>
@@ -90,11 +124,11 @@ export default async function DashboardPage() {
         ].map((stat) => (
           <Card
             key={stat.label}
-            className='border-border/40 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 group bg-card'
+            className='border-border/40 shadow-sm transition-all hover:shadow-lg hover:-translate-y-0.5 group bg-card'
           >
             <CardContent className='p-6 flex items-center gap-5'>
               <div
-                className={`h-14 w-14 rounded-2xl ${stat.bg} flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform`}
+                className={`h-14 w-14 min-w-14 rounded-full ${stat.bg} flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform`}
               >
                 <stat.icon className={`h-7 w-7 ${stat.color}`} />
               </div>
@@ -116,10 +150,13 @@ export default async function DashboardPage() {
             <h3 className='text-2xl font-black tracking-tight underline elevation-1 decoration-primary decoration-4 underline-offset-8'>
               Recent Projects
             </h3>
-            <Button className='rounded-xl font-bold gap-2 px-5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 shadow-none'>
-              <Plus className='h-5 w-5' />
-              New Project
-            </Button>
+            {isFundingAdvisor && (
+              <CreateProjectModal
+                clients={clients}
+                consultants={consultants}
+                statuses={statuses}
+              />
+            )}
           </div>
 
           <Card className='glass-card border-none'>
@@ -185,7 +222,7 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <Card className='bg-primary shadow-2xl shadow-primary/40 border-none overflow-hidden group'>
+          <Card className='bg-primary shadow-lg shadow-primary/40 border-none overflow-hidden group'>
             <CardContent className='p-8 relative'>
               <div className='absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 h-32 w-32 bg-white/10 rounded-full blur-2xl transition-all group-hover:scale-150 duration-700' />
               <div className='relative z-10 text-white space-y-4'>

@@ -16,8 +16,10 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ProjectStatusSelect } from './project-status-select';
-import { Calendar, User, Briefcase } from 'lucide-react';
+import { Calendar, User, Briefcase, Eye } from 'lucide-react';
+import Link from 'next/link';
 
 interface Project {
   id: string;
@@ -38,17 +40,29 @@ interface Status {
 interface ProjectTableProps {
   projects: Project[];
   statuses: Status[];
+  role?: string;
 }
 
-export function ProjectTable({ projects, statuses }: ProjectTableProps) {
+export function ProjectTable({ projects, statuses, role }: ProjectTableProps) {
+  const isConsultant = role === 'CONSULTANT';
+  const isClient = role === 'CLIENT';
+
   return (
     <Card className='glass-card w-full border-none shadow-sm overflow-hidden'>
       <CardHeader className='pb-0'>
         <CardTitle className='text-2xl font-black tracking-tight text-foreground'>
-          Project Pipeline
+          {isConsultant
+            ? 'Assigned Case Portfolio'
+            : isClient
+              ? 'Active Funding Projects'
+              : 'Project Pipeline'}
         </CardTitle>
         <CardDescription className='font-medium text-muted-foreground'>
-          Track and advance case stages for all clients.
+          {isConsultant
+            ? 'Manage and monitor projects you are currently consulting on.'
+            : isClient
+              ? 'View and manage your current funding applications.'
+              : 'Track and advance case stages for all clients.'}
         </CardDescription>
       </CardHeader>
       <CardContent className='pt-6'>
@@ -65,16 +79,19 @@ export function ProjectTable({ projects, statuses }: ProjectTableProps) {
                 <TableHead className='font-black uppercase tracking-widest text-[11px] py-5'>
                   Registration Date
                 </TableHead>
+                <TableHead className='font-black uppercase tracking-widest text-[11px] py-5 text-right pr-6'>
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {projects.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={3}
+                    colSpan={4}
                     className='h-32 text-center text-muted-foreground font-bold'
                   >
-                    No projects found in the pipeline.
+                    No projects found.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -118,6 +135,19 @@ export function ProjectTable({ projects, statuses }: ProjectTableProps) {
                           },
                         )}
                       </div>
+                    </TableCell>
+                    <TableCell className='py-4 text-right pr-6'>
+                      <Button
+                        asChild
+                        variant='ghost'
+                        size='sm'
+                        className='rounded-lg font-bold gap-2 hover:bg-white hover:text-primary transition-all border border-transparent hover:border-primary/20 cursor-pointer'
+                      >
+                        <Link href={`/dashboard/projects/${project.id}`}>
+                          <Eye className='h-4 w-4' />
+                          Details
+                        </Link>
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))

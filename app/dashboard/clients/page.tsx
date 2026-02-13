@@ -15,10 +15,27 @@ export default async function ClientsPage() {
     redirect('/login');
   }
 
-  // Fetch all clients with their profiles and project counts
+  // Fetch current user from DB to get the role
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { role: true, id: true },
+  });
+
+  const isConsultant = dbUser?.role === 'CONSULTANT';
+
+  // Fetch clients with conditional filtering
   const clients = await prisma.user.findMany({
     where: {
       role: 'CLIENT',
+      ...(isConsultant
+        ? {
+            clientProjects: {
+              some: {
+                consultantId: dbUser.id,
+              },
+            },
+          }
+        : {}),
     },
     include: {
       profile: true,
@@ -47,11 +64,16 @@ export default async function ClientsPage() {
       <div className='flex items-center justify-between'>
         <div className='space-y-1'>
           <h1 className='text-4xl font-black tracking-tight text-foreground'>
-            Client <span className='text-primary italic'>Directory</span>
+            {isConsultant ? 'My' : 'Client'}{' '}
+            <span className='text-primary italic'>
+              {isConsultant ? 'Supported Clients' : 'Directory'}
+            </span>
           </h1>
           <p className='text-muted-foreground font-semibold flex items-center gap-2'>
             <span className='h-1.5 w-1.5 rounded-full bg-primary' />
-            {transformedClients.length} Clients identified in the system
+            {isConsultant
+              ? `You are currently supporting ${transformedClients.length} clients`
+              : `${transformedClients.length} Clients identified in the system`}
           </p>
         </div>
       </div>

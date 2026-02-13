@@ -38,6 +38,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 export interface Client {
@@ -208,20 +209,28 @@ export function ClientTable({ clients: initialClients }: ClientTableProps) {
                           <DropdownMenuLabel className='px-3 py-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60'>
                             Client Actions
                           </DropdownMenuLabel>
-                          <DropdownMenuItem className='cursor-pointer rounded-lg p-3 focus:bg-primary/10 focus:text-primary group'>
-                            <Eye className='mr-3 h-4 w-4 transition-transform group-hover:scale-110' />
-                            <span className='font-bold'>View Dashboard</span>
+                          <DropdownMenuItem
+                            asChild
+                            className='cursor-pointer rounded-lg p-3 focus:bg-primary/10 focus:text-primary group'
+                          >
+                            <Link href={`/dashboard/clients/${client.id}`}>
+                              <Eye className='mr-3 h-4 w-4 transition-transform group-hover:scale-110' />
+                              <span className='font-bold'>View Dashboard</span>
+                            </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem className='cursor-pointer rounded-lg p-3 focus:bg-primary/10 focus:text-primary group'>
                             <Mail className='mr-3 h-4 w-4 transition-transform group-hover:scale-110' />
                             <span className='font-bold'>Contact Client</span>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator className='bg-border/70 my-2' />
-                          <DropdownMenuItem 
-                          variant='destructive'
-                          className='cursor-pointer rounded-lg p-3 group'>
-                            <UserIcon className='mr-3 h-4 w-4 transition-transform group-hover:scale-110' />
-                            <span className='font-bold'>Review Profile</span>
+                          <DropdownMenuItem
+                            asChild
+                            className='cursor-pointer rounded-lg p-3 group focus:bg-primary/10 focus:text-primary'
+                          >
+                            <Link href={`/dashboard/clients/${client.id}`}>
+                              <UserIcon className='mr-3 h-4 w-4 transition-transform group-hover:scale-110' />
+                              <span className='font-bold'>Review Profile</span>
+                            </Link>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
